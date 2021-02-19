@@ -6,21 +6,9 @@
 #include "Signals/Signal.h"
 #include "VSRTL/core/vsrtl_design.h"
 
-#include "../isainfo.h"
+#include "../isa/isainfo.h"
 
 namespace Ripes {
-enum SysCall {
-    None = 0,
-    PrintInt = 1,
-    PrintFloat = 2,
-    PrintStr = 4,
-    Exit = 10,
-    PrintChar = 11,
-    PrintIntHex = 34,
-    PrintIntBinary = 35,
-    PrintIntUnsigned = 36,
-    Exit2 = 93
-};
 
 /**
  * @brief The StageInfo struct
@@ -55,8 +43,21 @@ public:
     RipesProcessor(std::string name) : Design(name) {}
 
     /**
+     * @brief registerFiles
+     * @return the set of unique indentifiers for the register files exposed by this processor, under inclusion of the
+     * ISA which the processor has been instantiated with.
+     */
+    virtual const std::set<RegisterFileType> registerFiles() const = 0;
+
+    /**
+     * @brief supportsISA
+     * @return ISA alongside all of the supported extensions which this processor implements.
+     */
+    virtual const ISAInfoBase* supportsISA() const = 0;
+
+    /**
      * @brief implementsISA
-     * @return ISA which this processor implements
+     * @return ISA (+extensions) which the _instantiated_ processor implements.
      */
     virtual const ISAInfoBase* implementsISA() const = 0;
 
@@ -99,10 +100,20 @@ public:
     virtual SparseArray& getMemory() = 0;
 
     /**
+     * @brief getData/InstrMemory
+     * @returns a pointer to the component which implements the instruction and data memory interfaces. These types may
+     * be implementation specific, and as such should be cast to these types at the callers end.
+     */
+    virtual const Component* getDataMemory() const = 0;
+    virtual const Component* getInstrMemory() const = 0;
+
+    /**
      * @brief getRegister
+     * @param rfid: register file identifier
+     * @param i: register index
      * @return value currently present in register @p i
      */
-    virtual unsigned int getRegister(unsigned i) const = 0;
+    virtual unsigned int getRegister(RegisterFileType rfid, unsigned i) const = 0;
 
     /**
      * @brief getArchRegisters
@@ -112,9 +123,11 @@ public:
 
     /**
      * @brief setRegister
+     * @param rfid: register file identifier
+     * @param i: register index
      * Set the value of register @param i to @param v.
      */
-    virtual void setRegister(unsigned i, uint32_t v) = 0;
+    virtual void setRegister(RegisterFileType rfid, unsigned i, uint32_t v) = 0;
 
     /**
      * @brief setProgramCounter

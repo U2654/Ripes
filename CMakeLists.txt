@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.9)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    message(STATUS "CCache enabled")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+endif()
+
 project(Ripes CXX)
 
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -18,13 +25,16 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# Find Qt5Core and Qt5Widgets
+# Find required Qt packages
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets CONFIG REQUIRED)
+find_package(Qt5Svg REQUIRED)
+find_package(Qt5Charts CONFIG REQUIRED)
 
 # Finding Qt includes
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 include_directories(${Qt5Core_INCLUDE_DIRS})
+include_directories(${Qt5Charts_INCLUDE_DIRS})
 
 ######################################################################
 ## Resources setup

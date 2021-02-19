@@ -2,9 +2,27 @@ cmake_minimum_required(VERSION 3.9)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-file(GLOB LIB_SOURCES *.cpp graphics/*.cpp version/version.cpp)
-file(GLOB LIB_HEADERS *.h graphics/*.h)
-file(GLOB LIB_UIS *.ui)
+file(GLOB LIB_SOURCES
+    *.cpp
+    isa/*.cpp
+    cachesim/*.cpp
+    editor/*.cpp
+    syscall/*.cpp
+    version/version.cpp
+    assembler/*.cpp)
+file(GLOB LIB_HEADERS
+    *.h
+    isa/*.h
+    cachesim/*.h
+    editor/*.h
+    syscall/*.h
+    graphics/*.h
+    assembler/*.h)
+file(GLOB LIB_UIS
+    *.ui
+    cachesim/*.ui
+    syscall/*.ui
+)
 
 set(RIPES_LIB ripes_lib)
 add_library(${RIPES_LIB} ${LIB_SOURCES} ${LIB_HEADERS} ${LIB_UIS})
@@ -13,7 +31,7 @@ target_compile_features(${RIPES_LIB} PRIVATE cxx_std_17)
 
 # Link external libraries
 target_link_libraries(${RIPES_LIB} fancytabbar_lib)
-target_link_libraries(${RIPES_LIB} ${VSRTL_GRAPHICS_LIB})
+target_link_libraries(${RIPES_LIB} ${VSRTL_GRAPHICS_LIB} Qt5::Charts)
 
 add_subdirectory(processors)
 

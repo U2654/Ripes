@@ -6,8 +6,8 @@
 #include <map>
 #include <memory>
 
-#include "assembler.h"
-#include "program.h"
+#include "assembler/assembler.h"
+#include "assembler/program.h"
 #include "ripestab.h"
 
 namespace Ripes {
@@ -16,8 +16,7 @@ namespace Ui {
 class EditTab;
 }
 
-class Assembler;
-class LoadFileParams;
+struct LoadFileParams;
 
 class EditTab : public RipesTab {
     Q_OBJECT
@@ -26,25 +25,36 @@ public:
     EditTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~EditTab() override;
 
-    void setAssemblyText(const QString& text);
+    void setSourceText(const QString& text);
     QString getAssemblyText();
     void newProgram();
     void clearAssemblyEditor();
 
     bool isEditorEnabled() const { return m_editorEnabled; }
 
-    const QByteArray& getBinaryData();
+    const QByteArray* getBinaryData();
 
     void loadFile(const LoadFileParams&);
+    /**
+     * @brief loadExternalFile
+     * sets the current source type to whatever is specified by @p params and calls loadFile(@p params);
+     */
+    void loadExternalFile(const LoadFileParams& params);
 
 signals:
-    void programChanged(const Program* program);
+    void programChanged(std::shared_ptr<Program> program);
     void editorStateChanged(bool enabled);
 
 public slots:
+    void onProcessorChanged();
     void updateProgramViewerHighlighting();
-
     void emitProgramChanged();
+
+    /**
+     * @brief sourceTypeChanged
+     * Called whenever the user requested to change the current input type (Assembly or C)
+     */
+    void sourceTypeChanged();
 
     /**
      * @brief enableAssemblyInput
@@ -53,24 +63,33 @@ public slots:
     void enableAssemblyInput();
 
 private slots:
-    void assemble();
+    void showSymbolNavigator();
+    void sourceCodeChanged();
     void on_disassembledViewButton_toggled();
 
 private:
+    void assemble();
+    void compile();
+
     void updateProgramViewer();
     bool loadFlatBinaryFile(Program& program, QFile& file, unsigned long entryPoint, unsigned long loadAt);
-    bool loadAssemblyFile(Program& program, QFile& file);
+    bool loadSourceFile(Program& program, QFile& file);
     bool loadElfFile(Program& program, QFile& file);
 
     void setupActions();
     void enableEditor();
     void disableEditor();
 
-    Ui::EditTab* m_ui = nullptr;
-    std::unique_ptr<Assembler> m_assembler;
+    QAction* m_buildAction = nullptr;
+    QAction* m_followAction = nullptr;
+    QAction* m_symbolNavigatorAction = nullptr;
 
-    LoadFileParams m_loadedFile;
-    Program m_activeProgram;
+    Ui::EditTab* m_ui = nullptr;
+
+    std::shared_ptr<Program> m_activeProgram;
+    std::shared_ptr<Assembler::Errors> m_sourceErrors;
+
+    SourceType m_currentSourceType = SourceType::Assembly;
 
     bool m_editorEnabled = true;
 };
